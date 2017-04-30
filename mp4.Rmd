@@ -38,17 +38,23 @@ cElevation_4326 <- spTransform(cElevation, CRS("+init=epsg:4326"))
 mac_boundry_4326 <- spTransform( macleish_layers[["boundary"]], CRS("+init=epsg:4326") )
 mac_elevation_c <- gIntersection(mac_boundry_4326, cElevation_4326)
 mac_elevation_w <- gIntersection(mac_boundry_4326, wElevation_4326)
-```
-```{r}
 mac_elevation <- gUnion (mac_elevation_w, mac_elevation_c)
+trails_4326 <- spTransform(macleish_layers[["trails"]], CRS("+init=epsg:4326"))
 ```
 
 
 ```{r}
 leaflet() %>%
   addTiles() %>%
-  addPolylines(data = macleish_layers[["trails"]], weight = 1, color = "black")%>%
+  addPolylines(data = trails_4326 , weight = 1, color = "black")%>%
   addPolylines(data=mac_elevation, weight= 1, color="red")%>%
   addPolygons(data= mac_boundry_4326, weight = 1, color="blue")
+```
+
+```{r}
+max_grade <- function(trailData){
+  trailData@Lines[[1]]@coords
+}
+lapply(trails_4326@lines, max_grade)
 ```
 
