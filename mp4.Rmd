@@ -1,0 +1,54 @@
+---
+title: "Untitled"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(macleish)
+library(sp)
+library(rgeos)
+library(leaflet)
+library(rgdal)
+```
+
+
+```{r}
+url <- "http://wsgw.mass.gov/data/gispub/shape/contours5k/hp337.zip"
+download.file(url, destfile = basename(url))
+unzip("hp337.zip", exdir = "WhatelyElevation")
+dsn <- path.expand("WhatelyElevation")
+wElevation <- readOGR(dsn, "hp337")
+wElevation_4326 <- spTransform(wElevation, CRS("+init=epsg:4326"))
+
+
+```
+
+```{r}
+url <- "http://wsgw.mass.gov/data/gispub/shape/contours5k/hp68.zip"
+download.file(url, destfile = basename(url))
+unzip("hp68.zip", exdir = "ConwayElevation")
+dsn <- path.expand("ConwayElevation")
+cElevation <- readOGR(dsn, "hp68")
+cElevation_4326 <- spTransform(cElevation, CRS("+init=epsg:4326"))
+```
+
+```{r}
+mac_boundry_4326 <- spTransform( macleish_layers[["boundary"]], CRS("+init=epsg:4326") )
+mac_elevation_c <- gIntersection(mac_boundry_4326, cElevation_4326)
+mac_elevation_w <- gIntersection(mac_boundry_4326, wElevation_4326)
+```
+```{r}
+mac_elevation <- gUnion (mac_elevation_w, mac_elevation_c)
+```
+
+
+```{r}
+leaflet() %>%
+  addTiles() %>%
+  addPolylines(data = macleish_layers[["trails"]], weight = 1, color = "black")%>%
+  addPolylines(data=mac_elevation, weight= 1, color="red")%>%
+  addPolygons(data= mac_boundry_4326, weight = 1, color="blue")
+```
+
