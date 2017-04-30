@@ -53,8 +53,23 @@ leaflet() %>%
 
 ```{r}
 max_grade <- function(trailData){
-  trailData@Lines[[1]]@coords
+  cTrail <- trailData@Lines[[1]]@coords %>%
+              select("1", "2")
+              #Line(ID = "a") %>%
+             # list()%>%
+              #Lines()%>%
+             # SpatialLines()
+  #proj4string(cTrail) <- CRS("+init=epsg:4326")
+  #gIntersection(cTrail, wElevation_4326)
 }
+
 lapply(trails_4326@lines, max_grade)
+
+
+
+get_elevation <- function(long, lat){
+    
+}
+
 ```
 
