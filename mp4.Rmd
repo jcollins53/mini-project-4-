@@ -51,19 +51,19 @@ leaflet() %>%
   addPolygons(data= mac_boundry_4326, weight = 1, color="blue")
 ```
 
+
 ```{r}
-max_grade <- function(trailData){
-  cTrail <- trailData@Lines[[1]]@coords %>%
-              select("1", "2")
-              #Line(ID = "a") %>%
-             # list()%>%
-              #Lines()%>%
-             # SpatialLines()
-  #proj4string(cTrail) <- CRS("+init=epsg:4326")
-  #gIntersection(cTrail, wElevation_4326)
+mac_elevation_tf <- gIntersects(mac_boundry_4326 , cElevation_4326, byid= TRUE)
+
+```
+
+```{r}
+max_grade <- function(ID){
+  cTrail <- trails_4326[ID, ]
+  gIntersection(cTrail, wElevation_4326)
 }
 
-lapply(trails_4326@lines, max_grade)
+lapply(seq(length(trails_4326@lines)), max_grade)
 
 
 
@@ -71,5 +71,20 @@ get_elevation <- function(long, lat){
     
 }
 
+```
+
+```{r}
+is_mac <- wElevation_4326 %>%
+  gIntersects(mac_boundry_4326, byid= TRUE)
+
+try <- wElevation_4326[is_mac, ]
+```
+
+```{r}
+leaflet() %>%
+  addTiles() %>%
+  addPolylines(data = trails_4326 , weight = 1, color = "black")%>%
+  addPolylines(data=try, weight= 1, color="red")%>%
+  addPolygons(data= mac_boundry_4326, weight = 1, color="blue")
 ```
 
