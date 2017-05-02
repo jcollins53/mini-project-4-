@@ -70,6 +70,16 @@ lapply(trails_4326@lines, max_grade)
 get_elevation <- function(long, lat){
     
 }
+```
 
+
+```{r}
+##trail intersections with elevation lines
+
+int_sect <- gIntersection(trails_4326, mac_elevation)
+
+##elevation over intersection areas in Whately and Conway
+int_pls <- over(trails_4326, wElevation_4326)
+int_pls_c <- over(trails_4326, cElevation_4326)
 ```
 
