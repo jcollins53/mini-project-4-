@@ -108,7 +108,9 @@ int_pls_pract <- over(new_intersection, cElevation_4326)
 int_pls_c <- over(trails_4326[9,], cElevation_4326, returnList = TRUE) %>% as.data.frame()
 int_pls_w <- over(trails_4326[9,], wElevation_4326, returnList =  TRUE) %>% as.data.frame()
 
-int_pls_totl <- rbind(int_pls_c, int_pls_w) %>% na.omit() %>% summarize(elevation = max(ELEV_FT) - min(ELEV_FT))
+int_pls_totl <- rbind(int_pls_c, int_pls_w) %>% na.omit() %>% summarize(elevation = max(ELEV_M) - min(ELEV_M))
+
+qr <- SpatialLinesLengths(trails_4326[9,], longlat = TRUE)
 
 
 ```

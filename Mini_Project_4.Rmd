@@ -1,0 +1,80 @@
+---
+title: 'Mini-Project # 4 (Trail Number 9)'
+author: "Sarah Elghazoly"
+date: "5/2/2017"
+output: html_document
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(macleish)
+library(sp)
+library(rgeos)
+library(leaflet)
+library(rgdal)
+```
+
+
+```{r}
+url <- "http://wsgw.mass.gov/data/gispub/shape/contours5k/hp337.zip"
+download.file(url, destfile = basename(url))
+unzip("hp337.zip", exdir = "WhatelyElevation")
+dsn <- path.expand("WhatelyElevation")
+wElevation <- readOGR(dsn, "hp337")
+wElevation_4326 <- spTransform(wElevation, CRS("+init=epsg:4326"))
+
+
+```
+
+```{r}
+url <- "http://wsgw.mass.gov/data/gispub/shape/contours5k/hp68.zip"
+download.file(url, destfile = basename(url))
+unzip("hp68.zip", exdir = "ConwayElevation")
+dsn <- path.expand("ConwayElevation")
+cElevation <- readOGR(dsn, "hp68")
+cElevation_4326 <- spTransform(cElevation, CRS("+init=epsg:4326"))
+```
+
+```{r}
+mac_boundry_4326 <- spTransform( macleish_layers[["boundary"]], CRS("+init=epsg:4326") )
+mac_elevation_c <- gIntersection(mac_boundry_4326, cElevation_4326)
+mac_elevation_w <- gIntersection(mac_boundry_4326, wElevation_4326)
+mac_elevation <- gUnion (mac_elevation_w, mac_elevation_c)
+trails_4326 <- spTransform(macleish_layers[["trails"]], CRS("+init=epsg:4326"))
+```
+
+
+
+```{r}
+grades <- function(SPOT){
+
+at_pt <-  trails_4326[SPOT,]
+  
+print(at_pt$name)  
+
+k_nice <- at_pt@bbox %>% as.data.frame()
+
+leaflet() %>%
+  addTiles() %>%
+  addPolylines(data = at_pt , weight = 3, color = "black")%>%
+  addPolylines(data=mac_elevation, weight= 1, color="red")%>%
+  addPolygons(data= mac_boundry_4326, weight = 1, color="blue")%>%
+  addMarkers(data = at_pt, lng = k_nice[[1,1]], lat = k_nice[[2,1]]) %>%
+  addMarkers(data = at_pt, lng = k_nice[[1,2]], lat = k_nice[[2,2]])
+
+int_pls_c <- over(at_pt, cElevation_4326, returnList = TRUE) %>% as.data.frame()
+int_pls_w <- over(at_pt, wElevation_4326, returnList =  TRUE) %>% as.data.frame()
+
+qr <- at_pt %>% spTransform(CRS(proj4_aea)) %>% SpatialLinesLengths()
+
+int_pls_totl <- rbind(int_pls_c, int_pls_w) %>% na.omit() %>% summarize(elevation = max(ELEV_M) - min(ELEV_M), grade = elevation/qr)
+
+}
+
+lapply(seq(15), grades)
+
+```
+
+
